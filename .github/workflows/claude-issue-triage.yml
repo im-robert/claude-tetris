@@ -1,0 +1,48 @@
+name: Claude Issue Triage
+
+on:
+  issues:
+    types: [opened, edited]
+
+jobs:
+  triage:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Run Claude Issue Triage
+        id: claude-triage
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: |
+            Analyze issue #${{ github.event.issue.number }} in this repository.
+
+            1. Read the issue title and body.
+            2. Determine the most fitting labels from the repo's existing label set
+               (check with `gh label list`) — e.g. bug, enhancement, question,
+               documentation, duplicate, wontfix. Create a label only if none of
+               the existing ones fit and it's clearly needed.
+            3. Apply the labels to the issue with `gh issue edit`.
+            4. Post a comment on the issue (`gh issue comment`) with a short,
+               general diagnostic:
+               - What kind of issue this is and why.
+               - If it looks like a bug: a hypothesis of the likely cause,
+                 referencing relevant parts of the codebase (this is a vanilla
+                 JS/HTML5 Canvas Tetris game — see CLAUDE.md for architecture).
+               - If it's a feature request or question: a brief note on
+                 feasibility or where in the code it would need to be implemented.
+               - Suggested next steps.
+
+            Only use `gh issue edit` and `gh issue comment` to act on the issue —
+            do not modify any files or open pull requests.
+          claude_args: |
+            --allowed-tools "Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh label list:*),Bash(gh label create:*)"
