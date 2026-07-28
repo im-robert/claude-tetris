@@ -27,22 +27,36 @@ jobs:
             Analyze issue #${{ github.event.issue.number }} in this repository.
 
             1. Read the issue title and body.
-            2. Determine the most fitting labels from the repo's existing label set
-               (check with `gh label list`) — e.g. bug, enhancement, question,
+            2. Run `gh label list` to see the repo's existing labels.
+            3. Determine the most fitting labels — e.g. bug, enhancement, question,
                documentation, duplicate, wontfix. Create a label only if none of
-               the existing ones fit and it's clearly needed.
-            3. Apply the labels to the issue with `gh issue edit`.
-            4. Post a comment on the issue (`gh issue comment`) with a short,
-               general diagnostic:
-               - What kind of issue this is and why.
+               the existing ones fit and it's clearly needed (`gh label create`).
+            4. Apply the labels to the issue by running EXACTLY this command form
+               (non-interactive, do not run `gh issue edit` without flags since it
+               opens an interactive prompt and will fail in CI):
+               `gh issue edit ${{ github.event.issue.number }} --add-label "label-one,label-two"`
+               Verify afterward with `gh issue view ${{ github.event.issue.number }} --json labels`
+               that the labels were actually attached; retry if the list is empty.
+            5. Post a comment on the issue with:
+               `gh issue comment ${{ github.event.issue.number }} --body-file <path-to-markdown-file>`
+               (write the comment text to a temporary markdown file first, then pass
+               it with `--body-file` so formatting is preserved exactly).
+
+               The comment body MUST be valid GitHub-Flavored Markdown that GitHub
+               can render properly: use `#`/`##` headings, `-` bullet lists, and
+               ```code fences``` for any code or file references — no raw unescaped
+               text dumps. Structure it as:
+               - `## Diagnóstico` — what kind of issue this is and why.
                - If it looks like a bug: a hypothesis of the likely cause,
                  referencing relevant parts of the codebase (this is a vanilla
-                 JS/HTML5 Canvas Tetris game — see CLAUDE.md for architecture).
+                 JS/HTML5 Canvas Tetris game — see CLAUDE.md for architecture),
+                 with file/function names in inline code spans.
                - If it's a feature request or question: a brief note on
                  feasibility or where in the code it would need to be implemented.
-               - Suggested next steps.
+               - `## Próximos pasos` — a short bullet list of suggested next steps.
 
-            Only use `gh issue edit` and `gh issue comment` to act on the issue —
-            do not modify any files or open pull requests.
+            Only use `gh label list`, `gh label create`, `gh issue edit`, and
+            `gh issue comment` to act on the issue — do not modify any repo files
+            or open pull requests.
           claude_args: |
-            --allowed-tools "Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh label list:*),Bash(gh label create:*)"
+            --allowed-tools "Write,Bash(gh issue edit:*),Bash(gh issue comment:*),Bash(gh issue view:*),Bash(gh label list:*),Bash(gh label create:*)"
