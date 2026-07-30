@@ -212,6 +212,121 @@ kbd {
   background: var(--restart-hover);
 }
 
+/* ---- Leaderboard ---- */
+.leaderboard-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+}
+
+.leaderboard-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  color: var(--controls-color);
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.leaderboard-list li .rank {
+  color: var(--label-color);
+  min-width: 14px;
+}
+
+.leaderboard-list li .lb-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leaderboard-list li .lb-score {
+  color: var(--value-color);
+  font-weight: 700;
+}
+
+.leaderboard-list li.current-run {
+  background: var(--kbd-bg);
+  outline: 1px solid var(--value-color);
+  color: var(--text);
+}
+
+.leaderboard-list li.empty {
+  color: var(--label-color);
+  font-style: italic;
+}
+
+.leaderboard-stats {
+  font-size: 11px;
+  color: var(--controls-color);
+}
+
+.reset-records-btn {
+  margin-top: 4px;
+  background: transparent;
+  color: var(--controls-color);
+  border: 1px solid var(--kbd-border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  transition: background 0.15s, color 0.15s;
+}
+
+.reset-records-btn:hover {
+  background: var(--kbd-bg);
+  color: var(--text);
+}
+
+.name-entry {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.name-entry.hidden {
+  display: none;
+}
+
+.name-entry-msg {
+  font-size: 13px;
+  color: var(--overlay-title);
+}
+
+#name-input {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--kbd-border);
+  background: var(--kbd-bg);
+  color: var(--text);
+  text-align: center;
+  width: 160px;
+}
+
+#save-score-btn {
+  background: var(--restart-bg);
+  color: var(--restart-text);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 18px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: background 0.15s;
+}
+
+#save-score-btn:hover {
+  background: var(--restart-hover);
+}
+
 /* ---- Theme switch ---- */
 .theme-switch {
   position: absolute;
