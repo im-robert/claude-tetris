@@ -40,9 +40,18 @@ const overlayTitle = document.getElementById('overlay-title');
 const overlayScore = document.getElementById('overlay-score');
 const restartBtn = document.getElementById('restart-btn');
 const themeToggle = document.getElementById('theme-toggle');
+const pauseMenu = document.getElementById('pause-menu');
+const pauseListEl = document.getElementById('pause-list');
+const pauseItems = Array.from(pauseListEl.querySelectorAll('.pause-item'));
+const pauseControlsList = document.getElementById('pause-controls-list');
+const startLevelSelect = document.getElementById('start-level-select');
 
 let board, current, next, score, lines, level, paused, gameOver, lastTime, dropAccum, dropInterval, animId;
 let gridColor;
+let startLevel = 1;
+let pauseMenuOpen = false;
+let pauseMenuIndex = 0;
+const pauseMenuActions = ['resume', 'restart', 'controls'];
 
 const THEME_KEY = 'tetris-theme';
 
@@ -240,13 +249,67 @@ function togglePause() {
   if (gameOver) return;
   paused = !paused;
   if (!paused) {
+    closePauseMenu();
     lastTime = performance.now();
     loop(lastTime);
   } else {
     cancelAnimationFrame(animId);
-    overlayTitle.textContent = 'PAUSA';
-    overlayScore.textContent = '';
-    overlay.classList.remove('hidden');
+    openPauseMenu();
+  }
+}
+
+function openPauseMenu() {
+  pauseMenuOpen = true;
+  pauseMenuIndex = 0;
+  updatePauseMenuSelection();
+  pauseControlsList.classList.add('hidden');
+  startLevelSelect.value = String(startLevel);
+  pauseMenu.classList.remove('hidden');
+}
+
+function closePauseMenu() {
+  pauseMenuOpen = false;
+  pauseMenu.classList.add('hidden');
+}
+
+function updatePauseMenuSelection() {
+  pauseItems.forEach((li, i) => li.classList.toggle('selected', i === pauseMenuIndex));
+}
+
+function activatePauseMenuAction(action) {
+  if (action === 'resume') {
+    togglePause();
+  } else if (action === 'restart') {
+    startLevel = parseInt(startLevelSelect.value, 10) || 1;
+    closePauseMenu();
+    paused = false;
+    init();
+  } else if (action === 'controls') {
+    pauseControlsList.classList.toggle('hidden');
+  }
+}
+
+function handlePauseMenuKey(e) {
+  switch (e.code) {
+    case 'ArrowUp':
+      e.preventDefault();
+      pauseMenuIndex = (pauseMenuIndex - 1 + pauseMenuActions.length) % pauseMenuActions.length;
+      updatePauseMenuSelection();
+      break;
+    case 'ArrowDown':
+      e.preventDefault();
+      pauseMenuIndex = (pauseMenuIndex + 1) % pauseMenuActions.length;
+      updatePauseMenuSelection();
+      break;
+    case 'Enter':
+    case 'Space':
+      e.preventDefault();
+      activatePauseMenuAction(pauseMenuActions[pauseMenuIndex]);
+      break;
+    case 'KeyP':
+    case 'Escape':
+      togglePause();
+      break;
   }
 }
 
@@ -272,22 +335,24 @@ function init() {
   board = createBoard();
   score = 0;
   lines = 0;
-  level = 1;
+  level = startLevel;
   paused = false;
   gameOver = false;
-  dropInterval = 1000;
+  dropInterval = Math.max(100, 1000 - (startLevel - 1) * 90);
   dropAccum = 0;
   lastTime = performance.now();
   next = randomPiece();
   spawn();
   updateHUD();
   overlay.classList.add('hidden');
+  closePauseMenu();
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame(loop);
 }
 
 document.addEventListener('keydown', e => {
-  if (e.code === 'KeyP') { togglePause(); return; }
+  if (pauseMenuOpen) { handlePauseMenuKey(e); return; }
+  if (e.code === 'KeyP' || e.code === 'Escape') { togglePause(); return; }
   if (paused || gameOver) return;
   switch (e.code) {
     case 'ArrowLeft':
@@ -312,6 +377,18 @@ document.addEventListener('keydown', e => {
 });
 
 restartBtn.addEventListener('click', init);
+
+pauseItems.forEach((li, i) => {
+  li.addEventListener('click', () => {
+    pauseMenuIndex = i;
+    updatePauseMenuSelection();
+    activatePauseMenuAction(li.dataset.action);
+  });
+});
+
+startLevelSelect.addEventListener('change', () => {
+  startLevel = parseInt(startLevelSelect.value, 10) || 1;
+});
 
 themeToggle.addEventListener('change', () => {
   const theme = themeToggle.checked ? 'light' : 'dark';
